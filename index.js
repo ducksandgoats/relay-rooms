@@ -56,7 +56,7 @@ export class Room extends EventEmitter {
             }
           }
           this.signalCount--
-          this.emit('close', peer.id)
+          this.emit('close', peer.id, peer)
 
           if(peer.runFunc){
             this.statusConnections().then((data) => {this.emit('count', data);}).catch((err) => {this.emit('error', err)})
@@ -251,7 +251,7 @@ export class Room extends EventEmitter {
             peer.offer = val.offer_id
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
-            self.emit('connect', peer.id)
+            self.emit('connect', peer.id, peer)
           })
           peer.on('close', () => {
             if(peer.reCheck){
@@ -268,7 +268,7 @@ export class Room extends EventEmitter {
               }
             }
             self.signalCount--
-            self.emit('close', peer.id)
+            self.emit('close', peer.id, peer)
 
             if(peer.runFunc){
               self.statusConnections().then((data) => {this.emit('count', data);}).catch((err) => {this.emit('error', err)})
@@ -310,7 +310,7 @@ export class Room extends EventEmitter {
             peer.offer = val.offer_id
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
-            self.emit('connect', peer.id)
+            self.emit('connect', peer.id, peer)
           }
           )
           peer.signal(val.answer)
