@@ -25,11 +25,12 @@ export class Room extends EventEmitter {
       this.stayLimit = typeof(stayLimit) === 'boolean' ? stayLimit : false
       this.signalCount = 0
       this.sessions = 0
-      this.recheck = opts.recheck || null
-      this.recheckTimer = (opts.recheckTimer || 30) * 1000
+      this.afterOpen = opts.afterOpen || null
+      this.beforeClose = opts.beforeClose || null
       this.statusConnections().then((data) => {this.emit('count', data);}).catch((err) => {this.emit('error', err)})
     }
     async getArr(howMany, signalArgs){
+      const self = this
       console.log('making ' + howMany + ' signals')
       for(let i = 0;i < howMany;i++){
         const id = SHA1(nanoid()).toString(enc.Hex)
@@ -37,32 +38,38 @@ export class Room extends EventEmitter {
         this.signalCount++
         peer.offer = id
         peer.runFunc = true
-        peer.on('error', (err) => {
+        peer.onError = function(err){
           peer.destroy()
-          this.emit('error', err)
-        })
-        peer.on('close', () => {
-          if(peer.reCheck){
-            clearInterval(peer.reCheck)
+          self.emit('error', err)
+        }
+        peer.on('error', peer.onError)
+        peer.onClose = function(){
+          if(self.beforeClose){
+            self.beforeClose(self, peer)
           }
+          if(peer.onConnect){
+            peer.off('connect', peer.onConnect)
+          }
+          peer.off('error', peer.onError)
+          peer.off('close', peer.onClose)
           if(peer.id){
-            if(this.signals[peer.id]){
-              delete this.signals[peer.id]
+            if(self.signals[peer.id]){
+              delete self.signals[peer.id]
             }
           }
           if(peer.offer){
-            if(this.offers[peer.offer]){
-              delete this.offers[peer.offer]
+            if(self.offers[peer.offer]){
+              delete self.offers[peer.offer]
             }
           }
-          this.signalCount--
-          this.emit('close', peer.id, peer)
+          self.signalCount--
+          self.emit('close', peer.id, peer)
 
           if(peer.runFunc){
-            this.statusConnections().then((data) => {this.emit('count', data);}).catch((err) => {this.emit('error', err)})
+            self.statusConnections().then((data) => {self.emit('count', data);}).catch((err) => {self.emit('error', err)})
           }
         }
-        )
+        peer.on('close', peer.onClose)
         const stamp = Date.now()
         // peer.offer = id
         this.offers[id] = {stamp, id, offer_id: id, peer, offer: await new Promise((resolve) => peer.once('signal', resolve))}
@@ -171,7 +178,7 @@ export class Room extends EventEmitter {
             self.urls.splice(self.urls.indexOf(self.url), 1)
           }
           self.emit('url', self.url)
-          self.handleSocket(new WebSocket(self.url + '/' + this.hash))
+          self.handleSocket(new WebSocket(self.url + '/' + self.hash))
           socketUrl.close()
           return
         }
@@ -239,24 +246,31 @@ export class Room extends EventEmitter {
               })
             )
           })
-          peer.on('error', (err) => {
+          peer.onError = function(err){
             peer.destroy()
             self.emit('error', err)
-          })
-          peer.on('connect', () => {
-            if(self.recheck){
-              peer.reCheck = setInterval(() => {self.recheck(peer)}, self.recheckTimer)
+          }
+          peer.on('error', peer.onError)
+          peer.onConnect = function(){
+            if(self.afterOpen){
+              self.afterOpen(self, peer)
             }
             peer.id = val.peer_id
             peer.offer = val.offer_id
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
             self.emit('connect', peer.id, peer)
-          })
-          peer.on('close', () => {
-            if(peer.reCheck){
-              clearInterval(peer.reCheck)
+          }
+          peer.on('connect', peer.onConnect)
+          peer.onClose = function(){
+            if(self.beforeClose){
+              self.beforeClose(self, peer)
             }
+            if(peer.onConnect){
+              peer.off('connect', peer.onConnect)
+            }
+            peer.off('error', peer.onError)
+            peer.off('close', peer.onClose)
             if(peer.id){
               if(self.signals[peer.id]){
                 delete self.signals[peer.id]
@@ -271,9 +285,10 @@ export class Room extends EventEmitter {
             self.emit('close', peer.id, peer)
 
             if(peer.runFunc){
-              self.statusConnections().then((data) => {this.emit('count', data);}).catch((err) => {this.emit('error', err)})
+              self.statusConnections().then((data) => {self.emit('count', data);}).catch((err) => {self.emit('error', err)})
             }
-          })
+          }
+          peer.on('close', peer.onClose)
           peer.signal(val.offer)
     
           return
@@ -302,9 +317,9 @@ export class Room extends EventEmitter {
           if (peer.destroyed) {
             return
           }
-          peer.on('connect', () => {
-            if(self.recheck){
-              peer.reCheck = setInterval(() => {self.recheck(peer)}, self.recheckTimer)
+          peer.onConnect = function(){
+            if(self.afterOpen){
+              self.afterOpen(self, peer)
             }
             peer.id = val.peer_id
             peer.offer = val.offer_id
@@ -312,7 +327,7 @@ export class Room extends EventEmitter {
             delete self.offers[peer.offer]
             self.emit('connect', peer.id, peer)
           }
-          )
+          peer.on('connect', peer.onConnect)
           peer.signal(val.answer)
         }
       }
