@@ -362,6 +362,11 @@ export class Room extends EventEmitter {
     
       return array;
     }
+    send(data){
+      for(const test in this.signals){
+        this.signals[test].send(JSON.stringify(data))
+      }
+    }
       // takeOutEvents(socket){
       //   socket.onopen = undefined
       //   socket.onerror = undefined
