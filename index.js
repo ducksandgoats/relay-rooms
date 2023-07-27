@@ -25,8 +25,21 @@ export class Room extends EventEmitter {
       this.stayLimit = typeof(stayLimit) === 'boolean' ? stayLimit : false
       this.signalCount = 0
       this.sessions = 0
-      this.afterOpen = opts.afterOpen || null
-      this.beforeClose = opts.beforeClose || null
+      this.afterOpen = opts.afterOpen || function(obj, rtc){
+        rtc.send(JSON.stringify({peers: Object.keys(obj.signals), type: 'session'}))
+        rtc.onData = function(datas){
+          const data = JSON.parse(datas)
+          if(data.type === 'session'){
+            rtc.peers = data.peers
+          } else {
+            obj.emit('message', data)
+          }
+        }
+        rtc.on('data', rtc.onData)
+      }
+      this.beforeClose = opts.beforeClose || function(obj, rtc){
+        rtc.off('data', rtc.onData)
+      }
       this.statusConnections().then((data) => {this.emit('count', data);}).catch((err) => {this.emit('error', err)})
     }
     async getArr(howMany, signalArgs){
@@ -44,9 +57,7 @@ export class Room extends EventEmitter {
         }
         peer.on('error', peer.onError)
         peer.onClose = function(){
-          if(self.beforeClose){
-            self.beforeClose(self, peer)
-          }
+          self.beforeClose(self, peer)
           if(peer.onConnect){
             peer.off('connect', peer.onConnect)
           }
@@ -252,20 +263,16 @@ export class Room extends EventEmitter {
           }
           peer.on('error', peer.onError)
           peer.onConnect = function(){
-            if(self.afterOpen){
-              self.afterOpen(self, peer)
-            }
             peer.id = val.peer_id
             peer.offer = val.offer_id
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
+            self.afterOpen(self, peer)
             self.emit('connect', peer.id, peer)
           }
           peer.on('connect', peer.onConnect)
           peer.onClose = function(){
-            if(self.beforeClose){
-              self.beforeClose(self, peer)
-            }
+            self.beforeClose(self, peer)
             if(peer.onConnect){
               peer.off('connect', peer.onConnect)
             }
@@ -318,13 +325,11 @@ export class Room extends EventEmitter {
             return
           }
           peer.onConnect = function(){
-            if(self.afterOpen){
-              self.afterOpen(self, peer)
-            }
             peer.id = val.peer_id
             peer.offer = val.offer_id
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
+            self.afterOpen(self, peer)
             self.emit('connect', peer.id, peer)
           }
           peer.on('connect', peer.onConnect)
