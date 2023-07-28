@@ -26,7 +26,6 @@ export class Room extends EventEmitter {
       this.signalCount = 0
       this.sessions = 0
       this.afterOpen = opts.afterOpen || function(obj, rtc){
-        rtc.send(JSON.stringify({peers: Object.keys(obj.signals), type: 'session'}))
         rtc.onData = function(datas){
           const data = JSON.parse(datas)
           if(data.type === 'session'){
@@ -36,6 +35,7 @@ export class Room extends EventEmitter {
           }
         }
         rtc.on('data', rtc.onData)
+        rtc.send(JSON.stringify({peers: Object.keys(obj.signals), type: 'session'}))
       }
       this.beforeClose = opts.beforeClose || function(obj, rtc){
         rtc.off('data', rtc.onData)
