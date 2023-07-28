@@ -18,9 +18,9 @@ export class Room extends EventEmitter {
       if (!this.urls.length) {
           throw new Error('urls is empty')
       }
-      this.url = this.urls.pop()
       this.hash = SHA1(room).toString(enc.Hex)
       this.urls = this.urls.map((data) => {return data + '/' + this.hash})
+      this.url = this.urls.pop()
       this.maxLimit = typeof(maxLimit) === 'number' ? maxLimit : 6
       this.stayLimit = typeof(stayLimit) === 'boolean' ? stayLimit : false
       this.signalCount = 0
@@ -133,7 +133,7 @@ export class Room extends EventEmitter {
             })()
           }))
         } else {
-          this.handleSocket(new WebSocket(this.url + '/' + this.hash))
+          this.handleSocket(new WebSocket(this.url))
         }
         return this.sessions
       } else {
@@ -166,7 +166,7 @@ export class Room extends EventEmitter {
         if(self.urls.length){
           self.url = self.urls.pop()
           self.emit('url', self.url)
-          self.handleSocket(new WebSocket(self.url + '/' + this.hash))
+          self.handleSocket(new WebSocket(self.url))
         } else {
           self.emit('error', new Error('out of urls'))
         }
@@ -189,7 +189,7 @@ export class Room extends EventEmitter {
             self.urls.splice(self.urls.indexOf(self.url), 1)
           }
           self.emit('url', self.url)
-          self.handleSocket(new WebSocket(self.url + '/' + self.hash))
+          self.handleSocket(new WebSocket(self.url))
           socketUrl.close()
           return
         }
