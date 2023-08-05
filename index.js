@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import {EventEmitter} from 'events'
 import {enc, SHA1} from 'crypto-js'
 import {hex2bin, bin2hex} from 'uint8-util'
+import Zerok from 'zerok'
 
 export class Room extends EventEmitter {
     constructor(room, maxLimit, stayLimit, opts = {}){
@@ -12,6 +13,10 @@ export class Room extends EventEmitter {
       this.sockets = {}
       this.signals = {}
       this.selfId = SHA1(nanoid()).toString(enc.Hex)
+      this.zero = new Zerok(null, localStorage.getItem('zero') ? JSON.parse(localStorage.getItem('zero')) : null)
+      if(!localStorage.getItem('zero')){
+        localStorage.setItem('zero', this.zero.keypair)
+      }
       this.rtcConfig = opts.rtcConfig || {}
       this.trackerAction = 'announce'
       this.urls = opts.trackers || ['wss://fediverse.tv/tracker/socket','wss://tracker.files.fm:7073/announce','wss://tracker.openwebtorrent.com']
