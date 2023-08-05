@@ -1,6 +1,6 @@
 {
   "name": "relay-rooms",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,6 @@
     "crypto-js": "^4.1.1",
     "events": "^3.3.0",
     "nanoid": "^4.0.2",
-    "uint8-util": "^2.1.9",
-    "zerok": "github:ducksandgoats/zerok"
+    "uint8-util": "^2.1.9"
   }
 }
