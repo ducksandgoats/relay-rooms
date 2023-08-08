@@ -187,6 +187,12 @@ export class Room extends EventEmitter {
           return
         }
 
+        if(val.public_key){
+          if(SHA1(val.public_key).toString(enc.Hex) !== val.peer_id){
+            return
+          }
+        }
+
         val.info_hash = bin2hex(val.info_hash)
         val.peer_id = bin2hex(val.peer_id)
 
@@ -254,6 +260,7 @@ export class Room extends EventEmitter {
           peer.onConnect = function(){
             peer.id = val.peer_id
             peer.offer = val.offer_id
+            peer.public_key = val.public_key
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
             if(self.afterOpen){
@@ -320,6 +327,7 @@ export class Room extends EventEmitter {
           peer.onConnect = function(){
             peer.id = val.peer_id
             peer.offer = val.offer_id
+            peer.public_key = val.public_key
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
             if(self.afterOpen){
