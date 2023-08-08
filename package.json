@@ -1,6 +1,6 @@
 {
   "name": "relay-rooms",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,6 +14,7 @@
     "crypto-js": "^4.1.1",
     "events": "^3.3.0",
     "nanoid": "^4.0.2",
+    "simple-peer-light": "^9.10.0",
     "uint8-util": "^2.1.9"
   }
 }
