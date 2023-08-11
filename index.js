@@ -11,7 +11,8 @@ export class Room extends EventEmitter {
       this.offers = {}
       this.sockets = {}
       this.signals = {}
-      this.selfId = SHA1(nanoid()).toString(enc.Hex)
+      this.key = opts.key || nanoid()
+      this.selfId = SHA1(this.key).toString(enc.Hex)
       this.rtcConfig = opts.rtcConfig || {}
       this.trackerAction = 'announce'
       this.urls = opts.trackers || ['wss://fediverse.tv/tracker/socket','wss://tracker.files.fm:7073/announce','wss://tracker.openwebtorrent.com']
