@@ -114,6 +114,7 @@ export class Room extends EventEmitter {
             info_hash: hex2bin(this.hash),
             numwant: this.sessions,
             peer_id: hex2bin(this.selfId),
+            public_key: this.key,
             offers: (() => {
               const offers = []
               for(const test in this.offers){
@@ -141,6 +142,7 @@ export class Room extends EventEmitter {
           info_hash: hex2bin(self.hash),
           numwant: self.sessions,
           peer_id: hex2bin(self.selfId),
+          public_key: self.key,
           offers: (() => {
             const offers = []
             for(const test in self.offers){
@@ -248,6 +250,7 @@ export class Room extends EventEmitter {
                 action: self.trackerAction,
                 info_hash: hex2bin(self.hash),
                 peer_id: hex2bin(self.selfId),
+                public_key: self.key,
                 to_peer_id: hex2bin(val.peer_id),
                 offer_id: val.offer_id
               })
