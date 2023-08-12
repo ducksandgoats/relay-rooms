@@ -369,7 +369,7 @@ export class Room extends EventEmitter {
     
       return array;
     }
-    send(data){
+    sendData(data){
       for(const test in this.signals){
         this.signals[test].send(JSON.stringify(data))
       }
