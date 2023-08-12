@@ -114,7 +114,6 @@ export class Room extends EventEmitter {
             info_hash: hex2bin(this.hash),
             numwant: this.sessions,
             peer_id: hex2bin(this.selfId),
-            public_key: this.key,
             offers: (() => {
               const offers = []
               for(const test in this.offers){
@@ -142,7 +141,6 @@ export class Room extends EventEmitter {
           info_hash: hex2bin(self.hash),
           numwant: self.sessions,
           peer_id: hex2bin(self.selfId),
-          public_key: self.key,
           offers: (() => {
             const offers = []
             for(const test in self.offers){
@@ -188,12 +186,6 @@ export class Room extends EventEmitter {
 
         if(!val.offer_id || !val.peer_id || !val.info_hash){
           return
-        }
-
-        if(val.public_key){
-          if(SHA1(val.public_key).toString(enc.Hex) !== val.peer_id){
-            return
-          }
         }
 
         val.info_hash = bin2hex(val.info_hash)
@@ -250,7 +242,6 @@ export class Room extends EventEmitter {
                 action: self.trackerAction,
                 info_hash: hex2bin(self.hash),
                 peer_id: hex2bin(self.selfId),
-                public_key: self.key,
                 to_peer_id: hex2bin(val.peer_id),
                 offer_id: val.offer_id
               })
@@ -264,7 +255,6 @@ export class Room extends EventEmitter {
           peer.onConnect = function(){
             peer.id = val.peer_id
             peer.offer = val.offer_id
-            peer.public_key = val.public_key
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
             if(self.afterOpen){
@@ -331,7 +321,6 @@ export class Room extends EventEmitter {
           peer.onConnect = function(){
             peer.id = val.peer_id
             peer.offer = val.offer_id
-            peer.public_key = val.public_key
             self.signals[peer.id] = peer
             delete self.offers[peer.offer]
             if(self.afterOpen){
