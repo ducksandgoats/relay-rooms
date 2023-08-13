@@ -53,6 +53,7 @@ export class Room extends EventEmitter {
           }
           peer.off('error', peer.onError)
           peer.off('close', peer.onClose)
+          const useId = peer.id
           if(peer.id){
             if(self.signals[peer.id]){
               delete self.signals[peer.id]
@@ -64,7 +65,7 @@ export class Room extends EventEmitter {
             }
           }
           self.signalCount--
-          self.emit('close', peer.id, peer)
+          self.emit('close', useId, peer)
 
           if(peer.runFunc){
             self.statusConnections().then((data) => {self.emit('count', data);}).catch((err) => {self.emit('error', err)})
@@ -272,6 +273,7 @@ export class Room extends EventEmitter {
             }
             peer.off('error', peer.onError)
             peer.off('close', peer.onClose)
+            const useId = peer.id
             if(peer.id){
               if(self.signals[peer.id]){
                 delete self.signals[peer.id]
@@ -283,7 +285,7 @@ export class Room extends EventEmitter {
               }
             }
             self.signalCount--
-            self.emit('close', peer.id, peer)
+            self.emit('close', useId, peer)
 
             if(peer.runFunc){
               self.statusConnections().then((data) => {self.emit('count', data);}).catch((err) => {self.emit('error', err)})
@@ -359,6 +361,7 @@ export class Room extends EventEmitter {
       return array;
     }
     sendData(data){
+      console.log(data, JSON.stringify(data))
       for(const test in this.signals){
         this.signals[test].send(JSON.stringify(data))
       }
