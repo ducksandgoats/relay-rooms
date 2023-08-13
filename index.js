@@ -40,8 +40,8 @@ export class Room extends EventEmitter {
         peer.offer = id
         peer.runFunc = true
         peer.onError = function(err){
-          peer.destroy()
           self.emit('error', err)
+          peer.destroy()
         }
         peer.on('error', peer.onError)
         peer.onClose = function(){
